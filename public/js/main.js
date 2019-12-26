@@ -76,24 +76,38 @@ var GameState = {
     this.game.physics.arcade.enable(this.player);
     this.player.customParams = {}
     this.camera.follow(this.player);
+    this.player.body.collideWorldBounds = true;
 
     //criando o Monster Kong
     this.goal = this.add.sprite(this.levelData.goal.x, this.levelData.goal.y, 'goal');
     this.game.physics.arcade.enableBody(this.goal);
     this.goal.body.allowGravity = false;
 
+    //criando uma pool de barris
+    this.barrels = this.add.group();
+    this.barrels.enableBody = true;
+    this.createBarrel();
+    this.barrelCreator = this.game.time.events.loop(Phaser.Timer.SECOND * this.levelData.barrelFrequency, this.createBarrel, this);
+
+
+
     //criando os botoes para dispositivos móveis
     this.createOnscreenControls();
-
 
   },
 
   update: function () {
+    //verificacoes de colisão a cada update
     this.game.physics.arcade.collide(this.player, this.ground);
     this.game.physics.arcade.collide(this.player, this.platforms);
     this.game.physics.arcade.overlap(this.player, this.fires, this.killPlayer);
     this.game.physics.arcade.overlap(this.player, this.fires, this.win);
+
     this.game.physics.arcade.collide(this.platforms, this.fires);
+
+    this.game.physics.arcade.collide(this.barrels, this.ground);
+    this.game.physics.arcade.collide(this.barrels, this.platforms);
+    this.game.physics.arcade.collide(this.barrels, this.player, this.killPlayer);
 
 
     //definindo os padroes de velocidade do avatar
@@ -121,6 +135,12 @@ var GameState = {
       this.player.customParams.mustJump = false;
     }
 
+
+    this.barrels.forEach(element => {
+      if (element.x < 10 && element.y > 600) {
+        element.kill();
+      }
+    }, this);
 
   },
 
@@ -183,6 +203,20 @@ var GameState = {
       this.player.customParams.isMovingRight = false;
     }, this);
 
+  },
+
+  createBarrel: function () {
+    //pega o primeiro sprite morto da sequencia de barris
+    let barrel = this.barrels.getFirstExists(false);
+
+    if (!barrel) {
+      barrel = this.barrels.create(0, 0, 'barrel');
+    }
+
+    barrel.body.collideWorldBounds = true;
+    barrel.body.bounce.set(1, 0);
+    barrel.reset(this.levelData.goal.x, this.levelData.goal.y);
+    barrel.body.velocity.x = this.levelData.barrelSpeed;
   },
 
   killPlayer: function (player, fire) {
