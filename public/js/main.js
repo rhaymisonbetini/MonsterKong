@@ -47,11 +47,10 @@ var GameState = {
     this.ground.body.allowGravity = false; // configuracando fisica da plataforma
     this.ground.body.immovable = true;
 
-
+    //interando sobre o array de posicoes e criandos as plataformas     
     this.platforms = this.add.group();
     this.platforms.enableBody = true;
 
-    //interando sobre o array de posicoes e criandos as plataformas     
     this.levelData.platformData.forEach(element => {
       this.platforms.create(element.x, element.y, 'platform');
     })
@@ -76,9 +75,12 @@ var GameState = {
     this.player.animations.add('walking', [0, 1, 2, 1], 6, true);
     this.game.physics.arcade.enable(this.player);
     this.player.customParams = {}
-
     this.camera.follow(this.player);
 
+    //criando o Monster Kong
+    this.goal = this.add.sprite(this.levelData.goal.x, this.levelData.goal.y, 'goal');
+    this.game.physics.arcade.enableBody(this.goal);
+    this.goal.body.allowGravity = false;
 
     //criando os botoes para dispositivos móveis
     this.createOnscreenControls();
@@ -90,6 +92,7 @@ var GameState = {
     this.game.physics.arcade.collide(this.player, this.ground);
     this.game.physics.arcade.collide(this.player, this.platforms);
     this.game.physics.arcade.overlap(this.player, this.fires, this.killPlayer);
+    this.game.physics.arcade.overlap(this.player, this.fires, this.win);
     this.game.physics.arcade.collide(this.platforms, this.fires);
 
 
@@ -184,6 +187,10 @@ var GameState = {
 
   killPlayer: function (player, fire) {
     game.state.start('GameState');
+  },
+
+  win: function (player, goal) {
+
   }
 
 }
